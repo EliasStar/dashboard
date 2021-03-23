@@ -1,25 +1,39 @@
 package main
 
 import (
-	"dashboard/pins"
 	"flag"
 	"log"
 	"time"
+
+	"github.com/EliasStar/DashboardUtils/pins"
 )
 
 func main() {
 	var action string
 	var msToggle uint
+	var reset bool
 
 	flag.StringVar(&action, "action", "toggle", "`action` to occur: {press|release|toggle}")
 	flag.StringVar(&action, "a", "toggle", "`action` to occur: {press|release|toggle}")
+
 	flag.UintVar(&msToggle, "toggleDelay", 250, "`ms` between pressing and releasing on toggle")
 	flag.UintVar(&msToggle, "t", 250, "`ms` between pressing and releasing on toggle")
 
+	flag.BoolVar(&reset, "reset", false, "reset gpios")
+	flag.BoolVar(&reset, "r", false, "reset gpios")
+
 	flag.Parse()
 
-	initGPIO()
-	defer closeGPIO()
+	if reset {
+		for _, p := range pins.All() {
+			p.Write(false)
+			p.Mode(false)
+		}
+	}
+
+	for _, p := range pins.All() {
+		p.Mode(true)
+	}
 
 	if pinName := flag.Arg(0); pinName != "" {
 		pin, err := pins.From(pinName)
@@ -48,19 +62,6 @@ func main() {
 			log.Fatal("possible actions: press, release, toggle")
 		}
 	} else {
-		log.Fatal("display [<flags>] {power|menu|plus|minus|source}")
-	}
-}
-
-func initGPIO() {
-	for _, p := range pins.All() {
-		p.Mode(true)
-	}
-}
-
-func closeGPIO() {
-	for _, p := range pins.All() {
-		p.Write(false)
-		p.Mode(false)
+		log.Fatal("screen [<flags>] [{power|menu|plus|minus|source}]")
 	}
 }

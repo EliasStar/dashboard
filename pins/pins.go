@@ -14,6 +14,7 @@ const (
 	Plus   Pin = 22
 	Minus  Pin = 23
 	Source Pin = 24
+	Data   Pin = 18
 )
 
 func (p Pin) Mode(out bool) {
