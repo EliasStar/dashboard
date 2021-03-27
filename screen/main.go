@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/EliasStar/DashboardUtils/pins"
+	"github.com/EliasStar/DashboardUtils/utils"
 )
 
 func main() {
@@ -37,9 +38,7 @@ func main() {
 
 	if pinName := flag.Arg(0); pinName != "" {
 		pin, err := pins.From(pinName)
-		if err != nil {
-			log.Fatal(err)
-		}
+		utils.FatalIfErr(err)
 
 		switch action {
 		case "press":
@@ -50,9 +49,7 @@ func main() {
 
 		case "toggle":
 			val, err := pin.Read()
-			if err != nil {
-				log.Fatal(err)
-			}
+			utils.FatalIfErr(err)
 
 			pin.Write(!val)
 			time.Sleep(time.Duration(msToggle) * time.Millisecond)
