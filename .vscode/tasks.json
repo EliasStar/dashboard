@@ -1,0 +1,35 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build Builder Docker Image",
+            "type": "shell",
+            "command": "docker",
+            "args": [
+                "build",
+                "--pull",
+                "-t",
+                "dashboardutils:latest",
+                "${workspaceFolder}"
+            ],
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "Build Go Apps",
+            "type": "shell",
+            "command": "docker",
+            "args": [
+                "run",
+                "--mount",
+                "type=bind,src=${workspaceFolder},dst=/app/",
+                "dashboardutils"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": []
+        }
+    ]
+}
