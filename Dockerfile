@@ -21,9 +21,14 @@ FROM golang:1.16-buster
 COPY --from=lib_builder /usr/local/lib/libws2811.so /usr/local/lib/
 COPY --from=lib_builder /usr/local/include/ws2811 /usr/local/include/ws2811
 
+
+ENV GOOS=linux GOARCH=arm GOARM=6 CGO_ENABLED=1 CC=arm-linux-gnueabi-gcc
+
 RUN apt-get update -y && \
     apt-get upgrade -y && \
-    apt-get install -y build-essential
+    apt-get install -y crossbuild-essential-armel
+
+RUN go install -buildmode=shared std
 
 VOLUME [ "/go/src/app/" ]
 WORKDIR /go/src/app/
