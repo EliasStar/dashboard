@@ -1,43 +1,108 @@
 package main
 
 import (
-	"time"
+	"errors"
+	"flag"
+	"log"
+	"strconv"
+	"strings"
 
 	"github.com/EliasStar/DashboardUtils/common"
 )
 
 func main() {
+	var ledIdentifier string
 
-	strip, err := newLedstrip(data, 61, true)
-	common.FatalIfErr(err)
+	flag.StringVar(&ledIdentifier, "leds", "", "")
+	flag.StringVar(&ledIdentifier, "l", "", "")
 
-	common.FatalIfErr(strip.Init())
-	defer strip.Fini()
+	flag.Parse()
 
-	strip.display(0xff0000, 1000*time.Millisecond)
-	strip.display(0x00ff00, 1000*time.Millisecond)
-	strip.display(0x0000ff, 1000*time.Millisecond)
-	strip.display(0x000000, 500*time.Millisecond)
-}
+	if colorStr := flag.Arg(0); colorStr != "" {
+		color, err := parseColor(colorStr)
+		common.FatalIfErr(err)
 
-func (ws *ledstrip) display(color uint32, sleepTime time.Duration) error {
-	for i := 0; i < len(ws.Leds(0)); i++ {
-		ws.Leds(0)[i] = color
+		strip, err := newLedstrip(data, 61, true)
+		common.FatalIfErr(err)
 
-		if err := ws.Render(); err != nil {
-			return err
+		common.FatalIfErr(strip.Init())
+		defer strip.Fini()
+
+		strings.ReplaceAll(ledIdentifier, " ", "")
+		if ledIdentifier != "" {
+			leds, err := parseLEDs(ledIdentifier)
+			common.PanicIfErr(err)
+
+			for _, v := range leds {
+				strip.setLEDColor(v, color)
+			}
+		} else {
+			strip.setStripColor(color)
 		}
 
-		time.Sleep(sleepTime)
+		strip.Render()
+	} else {
+		log.Fatal("ledstrip [<flags>] <color>")
+	}
+}
+
+func parseColor(colorStr string) (uint32, error) {
+	if strings.HasPrefix(colorStr, "0x") {
+		colorStr = strings.TrimPrefix(colorStr, "0x")
+	} else if strings.HasPrefix(colorStr, "#") {
+		colorStr = strings.TrimPrefix(colorStr, "#")
 	}
 
-	return nil
+	color, err := strconv.ParseUint(colorStr, 16, 32)
+	if err != nil {
+		return 0, errors.New("possible color syntax: 0xRRGGBB, #RRGGBB, RRGGBB")
+	}
+
+	return uint32(color), nil
 }
 
-func (ws *ledstrip) wipeFromStartToEnd() {
+func parseLEDs(ledIdentifier string) ([]uint, error) {
+	ranges := strings.Split(ledIdentifier, ",")
 
-}
+	var leds []uint
 
-func (ws *ledstrip) wipeFromEndToStart() {
+	for _, v := range ranges {
+		if strings.Contains(v, "-") {
+			ledstrings := strings.Split(v, "-")
+			if len(ledstrings) != 2 {
+				return nil, errors.New("led range malformed: " + v)
+			}
 
+			first, err := strconv.ParseUint(ledstrings[0], 10, 0)
+			if err != nil {
+				return nil, err
+			}
+
+			last, err := strconv.ParseUint(ledstrings[1], 10, 0)
+			if err != nil {
+				return nil, err
+			}
+
+			if last-first <= 1 {
+				return nil, errors.New("led range out of bounds: " + v)
+			}
+
+			ledrange := make([]uint, (last-first)+1)
+
+			for i := 0; i < len(ledrange); i++ {
+				ledrange[i] = uint(first) + uint(i)
+			}
+
+			leds = append(leds, ledrange...)
+		} else {
+			led, err := strconv.ParseUint(v, 10, 0)
+			if err != nil {
+				return nil, err
+			}
+
+			leds = append(leds, uint(led))
+		}
+	}
+
+	return leds, nil
 }

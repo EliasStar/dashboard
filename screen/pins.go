@@ -18,7 +18,7 @@ func allPins() []common.Pin {
 	return []common.Pin{power, menu, plus, minus, source}
 }
 
-func pinFrom(pin string) (out common.Pin, err error) {
+func parsePin(pin string) (out common.Pin, err error) {
 	switch pin {
 	case "Power", "power", "POWER":
 		out = power

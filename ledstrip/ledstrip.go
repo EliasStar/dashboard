@@ -42,19 +42,24 @@ func (ws *ledstrip) setLEDColor(index uint, color uint32) {
 }
 
 func (ws *ledstrip) setLEDColorRGB(index uint, red uint8, green uint8, blue uint8) {
+	ws.setLEDColor(index, uint32(red)<<16|uint32(green)<<8|uint32(blue))
+}
+
+func (ws *ledstrip) setStripColor(color uint32) {
+	leds := ws.Leds(0)
+
+	var index uint
 	if ws.hasBurnerLED {
 		index++
 	}
 
-	ws.Leds(0)[index] = uint32(red)<<16 | uint32(green)<<8 | uint32(blue)
-}
-
-func (ws *ledstrip) setStripColor(color uint32) {
-
+	for ; index < ws.ledCount; index++ {
+		leds[index] = color
+	}
 }
 
 func (ws *ledstrip) setStripColorRGB(red uint8, green uint8, blue uint8) {
-
+	ws.setStripColor(uint32(red)<<16 | uint32(green)<<8 | uint32(blue))
 }
 
 func (ws *ledstrip) getLEDCount() uint {

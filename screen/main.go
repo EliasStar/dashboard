@@ -36,7 +36,7 @@ func main() {
 	}
 
 	if pinName := flag.Arg(0); pinName != "" {
-		pin, err := pinFrom(pinName)
+		pin, err := parsePin(pinName)
 		common.FatalIfErr(err)
 
 		switch action {
@@ -58,6 +58,6 @@ func main() {
 			log.Fatal("possible actions: press, release, toggle")
 		}
 	} else {
-		log.Fatal("screen [<flags>] [{power|menu|plus|minus|source}]")
+		log.Fatal("screen [<flags>] {power|menu|plus|minus|source}")
 	}
 }
