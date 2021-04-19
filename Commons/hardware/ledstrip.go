@@ -60,6 +60,6 @@ func (ws *Ledstrip) SetStripColorRGB(red uint8, green uint8, blue uint8) {
 	ws.SetStripColor(uint32(red)<<16 | uint32(green)<<8 | uint32(blue))
 }
 
-func (ws *Ledstrip) getLEDCount() uint {
+func (ws *Ledstrip) GetLEDCount() uint {
 	return ws.ledCount
 }
