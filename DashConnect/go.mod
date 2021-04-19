@@ -1,4 +1,4 @@
-module github.com/EliasStar/DashboardUtils/ScrnBtn
+module github.com/EliasStar/DashboardUtils/DashConnect
 
 go 1.16
 

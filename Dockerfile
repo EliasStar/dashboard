@@ -19,8 +19,6 @@ FROM golang:1.16-buster
 COPY --from=lib_builder /usr/local/lib/libws2811.a /usr/local/lib/
 COPY --from=lib_builder /usr/local/include/ws2811 /usr/local/include/ws2811
 
-ENV GOOS=linux GOARCH=arm GOARM=6 CGO_ENABLED=1 CC=arm-linux-gnueabi-gcc
-
 RUN apt-get update -y && \
     apt-get upgrade -y && \
     apt-get install -y crossbuild-essential-armel
