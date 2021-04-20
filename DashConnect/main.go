@@ -1,11 +1,28 @@
 package main
 
 import (
-	"errors"
+	"fmt"
+	"log"
+	"net"
+	"os"
 
-	"github.com/EliasStar/DashboardUtils/Commons/log"
+	lg "github.com/EliasStar/DashboardUtils/Commons/log"
+	nt "github.com/EliasStar/DashboardUtils/Commons/net"
 )
 
 func main() {
-	log.FatalIfErr(errors.New("test"))
+	con, err := net.Dial("tcp", os.Args[1]+":"+nt.DashDPort)
+	lg.FatalIfErr(err)
+
+	defer con.Close()
+
+	var in string
+	for {
+		fmt.Scan(&in)
+
+		if _, err := fmt.Fprintln(con, in); err != nil {
+			log.Println(err)
+			return
+		}
+	}
 }
