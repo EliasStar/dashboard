@@ -1,6 +1,8 @@
 package hardware
 
 import (
+	"image/color"
+
 	ws2811 "github.com/rpi-ws281x/rpi-ws281x-go"
 )
 
@@ -21,49 +23,40 @@ func MakeLedstrip(pin Pin, ledCount uint, addBurnerLED bool) (Ledstrip, error) {
 		return Ledstrip{}, err
 	}
 
-	return Ledstrip{dev, ledCount, addBurnerLED}, nil
+	return Ledstrip{dev, addBurnerLED}, nil
 }
 
 type Ledstrip struct {
 	*ws2811.WS2811
 
-	ledCount     uint
 	hasBurnerLED bool
 }
 
-func (ws *Ledstrip) SetLEDColor(index uint, color uint32) error {
+func (ws *Ledstrip) LEDs() []uint32 {
 	if ws.hasBurnerLED {
-		index++
+		return ws.Leds(0)[1:]
 	}
 
-	ws.Leds(0)[index] = color
-
-	return nil // TODO
+	return ws.Leds(0)
 }
 
-func (ws *Ledstrip) SetLEDColorRGB(index uint, red uint8, green uint8, blue uint8) error {
-	return ws.SetLEDColor(index, uint32(red)<<16|uint32(green)<<8|uint32(blue))
+func (ws *Ledstrip) LED(index int) *uint32 {
+	return &ws.LEDs()[index]
 }
 
-func (ws *Ledstrip) SetStripColor(color uint32) error {
-	leds := ws.Leds(0)
+func (ws *Ledstrip) SetStrip(color uint32) {
+	leds := ws.LEDs()
 
-	var index uint
-	if ws.hasBurnerLED {
-		index++
+	for i := 0; i < len(leds); i++ {
+		leds[i] = color
 	}
-
-	for ; index < ws.ledCount; index++ {
-		leds[index] = color
-	}
-
-	return nil // TODO
 }
 
-func (ws *Ledstrip) SetStripColorRGB(red uint8, green uint8, blue uint8) error {
-	return ws.SetStripColor(uint32(red)<<16 | uint32(green)<<8 | uint32(blue))
+func (ws *Ledstrip) SetStripColor(c color.Color) {
+	r, g, b, _ := c.RGBA()
+	ws.SetStrip(r<<16 | g<<8 | b)
 }
 
-func (ws *Ledstrip) GetLEDCount() uint {
-	return ws.ledCount
+func (ws *Ledstrip) SetStripRGB(red byte, green byte, blue byte) {
+	ws.SetStripColor(color.RGBA{red, green, blue, 0xff})
 }

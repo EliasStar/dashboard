@@ -31,14 +31,15 @@ func main() {
 
 		strings.ReplaceAll(ledIdentifier, " ", "")
 		if ledIdentifier != "" {
-			leds, err := parseLEDs(ledIdentifier)
+			ledIndicies, err := parseLEDs(ledIdentifier)
 			lg.PanicIfErr(err)
 
-			for _, v := range leds {
-				strip.SetLEDColor(v, color)
+			leds := strip.LEDs()
+			for _, v := range ledIndicies {
+				leds[v] = color
 			}
 		} else {
-			strip.SetStripColor(color)
+			strip.SetStrip(color)
 		}
 
 		strip.Render()
