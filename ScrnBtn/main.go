@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	hw "github.com/EliasStar/DashboardUtils/Commons/hardware"
+	"github.com/EliasStar/DashboardUtils/Commons/command/screen"
 	"github.com/EliasStar/DashboardUtils/Commons/util"
 )
 
@@ -27,34 +27,32 @@ func main() {
 	flag.Parse()
 
 	if reset {
-		for _, p := range allPins() {
-			p.Write(false)
-			p.Mode(false)
+		for _, b := range screen.ScreenButtons() {
+			b.Pin().Write(false)
+			b.Pin().Mode(false)
 		}
 	}
 
-	for _, p := range allPins() {
-		p.Mode(true)
+	for _, b := range screen.ScreenButtons() {
+		b.Pin().Mode(true)
 	}
 
-	if pinName := flag.Arg(0); pinName != "" {
-		pin, err := parsePin(pinName)
+	if btnName := flag.Arg(0); btnName != "" {
+		btn, err := parseButton(btnName)
 		util.FatalIfErr(err)
 
 		switch action {
 		case "press":
-			pin.Write(true)
-
-		case "release":
-			pin.Write(false)
-
-		case "toggle":
-			val, err := pin.Read()
+			err := btn.Pin().Write(true)
 			util.FatalIfErr(err)
 
-			pin.Write(!val)
-			time.Sleep(time.Duration(msToggle) * time.Millisecond)
-			pin.Write(val)
+		case "release":
+			err := btn.Pin().Write(false)
+			util.FatalIfErr(err)
+
+		case "toggle":
+			err := btn.Pin().Toggle(time.Duration(msToggle) * time.Millisecond)
+			util.FatalIfErr(err)
 
 		default:
 			log.Fatal("possible actions: press, release, toggle")
@@ -64,32 +62,22 @@ func main() {
 	}
 }
 
-func allPins() []hw.Pin {
-	return []hw.Pin{
-		hw.ScreenPowerPin,
-		hw.ScreenMenuPin,
-		hw.ScreenPlusPin,
-		hw.ScreenMinusPin,
-		hw.ScreenSourcePin,
-	}
-}
-
-func parsePin(pin string) (out hw.Pin, err error) {
+func parseButton(pin string) (out screen.ScreenButton, err error) {
 	switch pin {
 	case "Power", "power", "POWER":
-		out = hw.ScreenPowerPin
+		out = screen.ButtonPower
 
 	case "Menu", "menu", "MENU":
-		out = hw.ScreenMenuPin
+		out = screen.ButtonMenu
 
 	case "Plus", "plus", "PLUS":
-		out = hw.ScreenPlusPin
+		out = screen.ButtonPlus
 
 	case "Minus", "minus", "MINUS":
-		out = hw.ScreenMinusPin
+		out = screen.ButtonMinus
 
 	case "Source", "source", "SOURCE":
-		out = hw.ScreenSourcePin
+		out = screen.ButtonSource
 
 	default:
 		err = errors.New("possible pin names: power, menu, plus, minus, source")
