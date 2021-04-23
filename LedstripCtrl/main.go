@@ -3,12 +3,14 @@ package main
 import (
 	"errors"
 	"flag"
+	"image/color"
 	"log"
 	"strconv"
 	"strings"
 
 	hw "github.com/EliasStar/DashboardUtils/Commons/hardware"
-	lg "github.com/EliasStar/DashboardUtils/Commons/log"
+	"github.com/EliasStar/DashboardUtils/Commons/util"
+	cl "github.com/EliasStar/DashboardUtils/Commons/util/color"
 )
 
 func main() {
@@ -20,23 +22,23 @@ func main() {
 	flag.Parse()
 
 	if colorStr := flag.Arg(0); colorStr != "" {
-		color, err := parseColor(colorStr)
-		lg.FatalIfErr(err)
+		col, err := parseColor(colorStr)
+		util.FatalIfErr(err)
 
 		strip, err := hw.MakeLedstrip(hw.LedstripDataPin, 62, true)
-		lg.FatalIfErr(err)
+		util.FatalIfErr(err)
 
-		lg.FatalIfErr(strip.Init())
+		util.FatalIfErr(strip.Init())
 		defer strip.Fini()
 
 		ledIdentifier = strings.ReplaceAll(ledIdentifier, " ", "")
 		if ledIdentifier != "" {
 			ledIndicies, err := parseLEDs(ledIdentifier)
-			lg.PanicIfErr(err)
+			util.PanicIfErr(err)
 
-			strip.SetMultipleLEDs(ledIndicies, color)
+			strip.SetLEDColor(ledIndicies, col)
 		} else {
-			strip.SetStrip(color)
+			strip.SetStripColor(col)
 		}
 
 		strip.Render()
@@ -45,19 +47,20 @@ func main() {
 	}
 }
 
-func parseColor(colorStr string) (uint32, error) {
+func parseColor(colorStr string) (color.Color, error) {
 	if strings.HasPrefix(colorStr, "0x") {
 		colorStr = strings.TrimPrefix(colorStr, "0x")
 	} else if strings.HasPrefix(colorStr, "#") {
 		colorStr = strings.TrimPrefix(colorStr, "#")
 	}
 
-	color, err := strconv.ParseUint(colorStr, 16, 32)
+	c, err := strconv.ParseUint(colorStr, 16, 32)
 	if err != nil {
-		return 0, errors.New("possible color syntax: 0xRRGGBB, #RRGGBB, RRGGBB")
+		return nil, errors.New("possible color syntax: 0xRRGGBB, #RRGGBB, RRGGBB")
 	}
 
-	return uint32(color), nil
+	col := uint32(c) | 0xff000000
+	return cl.RGBA32{col}, nil
 }
 
 func parseLEDs(ledIdentifier string) ([]uint, error) {

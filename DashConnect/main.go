@@ -6,13 +6,13 @@ import (
 	"net"
 	"os"
 
-	lg "github.com/EliasStar/DashboardUtils/Commons/log"
 	nt "github.com/EliasStar/DashboardUtils/Commons/net"
+	"github.com/EliasStar/DashboardUtils/Commons/util"
 )
 
 func main() {
 	con, err := net.Dial("tcp", os.Args[1]+":"+nt.DashDPort)
-	lg.FatalIfErr(err)
+	util.FatalIfErr(err)
 
 	defer con.Close()
 
