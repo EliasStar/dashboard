@@ -3,6 +3,7 @@ package hardware
 import (
 	"image/color"
 
+	"github.com/EliasStar/DashboardUtils/Commons/util"
 	ws2811 "github.com/rpi-ws281x/rpi-ws281x-go"
 )
 
@@ -40,49 +41,34 @@ func (ws *Ledstrip) GetLEDs() []uint32 {
 	return ws.Leds(0)
 }
 
-func (ws *Ledstrip) SetLED(index uint, color uint32) {
-	ws.GetLEDs()[index] = color
-}
-
-func (ws *Ledstrip) SetLEDColor(index uint, c color.Color) {
+func (ws *Ledstrip) SetSingleLEDColor(index uint, c color.Color) {
 	r, g, b, _ := c.RGBA()
-	ws.SetLED(index, r<<16|g<<8|b)
+	ws.GetLEDs()[index] = r<<16 | g<<8 | b
 }
 
-func (ws *Ledstrip) SetLEDRGB(index uint, red byte, green byte, blue byte) {
-	ws.SetLEDColor(index, color.RGBA{red, green, blue, 0xff})
-}
-
-func (ws *Ledstrip) SetMultipleLEDs(indicies []uint, color uint32) {
+func (ws *Ledstrip) SetLEDColor(indicies []uint, c color.Color) {
 	leds := ws.GetLEDs()
+	r, g, b, _ := c.RGBA()
 
 	for _, v := range indicies {
-		leds[v] = color
+		leds[v] = r<<16 | g<<8 | b
 	}
 }
 
-func (ws *Ledstrip) SetMultipleLEDsColor(indicies []uint, c color.Color) {
-	r, g, b, _ := c.RGBA()
-	ws.SetMultipleLEDs(indicies, r<<16|g<<8|b)
-}
-
-func (ws *Ledstrip) SetMultipleLEDsRGB(indicies []uint, red byte, green byte, blue byte) {
-	ws.SetMultipleLEDsColor(indicies, color.RGBA{red, green, blue, 0xff})
-}
-
-func (ws *Ledstrip) SetStrip(color uint32) {
+func (ws *Ledstrip) SetLEDColors(indicies []uint, c []color.Color) {
 	leds := ws.GetLEDs()
 
-	for i := 0; i < len(leds); i++ {
-		leds[i] = color
+	for i := 0; i < util.Min(len(indicies), len(c)); i++ {
+		r, g, b, _ := c[i].RGBA()
+		leds[indicies[i]] = r<<16 | g<<8 | b
 	}
 }
 
 func (ws *Ledstrip) SetStripColor(c color.Color) {
+	leds := ws.GetLEDs()
 	r, g, b, _ := c.RGBA()
-	ws.SetStrip(r<<16 | g<<8 | b)
-}
 
-func (ws *Ledstrip) SetStripRGB(red byte, green byte, blue byte) {
-	ws.SetStripColor(color.RGBA{red, green, blue, 0xff})
+	for i := 0; i < len(leds); i++ {
+		leds[i] = r<<16 | g<<8 | b
+	}
 }
