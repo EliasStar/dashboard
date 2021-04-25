@@ -65,11 +65,13 @@ func (l LedstripCmd) Execute(ctx context.Context) command.Result {
 		}
 
 	case AnimationSprinkle:
+		return LedstripRst{nil, errors.New("animation not implemented")}
 
-	case AnimationFlushRight:
+	case AnimationFlush:
+		return LedstripRst{nil, errors.New("animation not implemented")}
 
-	case AnimationFlushLeft:
-
+	case AnimationFlushReverse:
+		return LedstripRst{nil, errors.New("animation not implemented")}
 	}
 
 	return nil

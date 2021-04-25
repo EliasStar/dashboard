@@ -6,9 +6,9 @@ const (
 	AnimationRead  LedstripAnimation = "read"
 	AnimationWrite LedstripAnimation = "write"
 
-	AnimationSprinkle   LedstripAnimation = "sprinkle"
-	AnimationFlushRight LedstripAnimation = "flush_right"
-	AnimationFlushLeft  LedstripAnimation = "flush_left"
+	AnimationSprinkle     LedstripAnimation = "sprinkle"
+	AnimationFlush        LedstripAnimation = "flush_start_end"
+	AnimationFlushReverse LedstripAnimation = "flush_end_start"
 )
 
 func (s LedstripAnimation) IsValid() bool {
@@ -26,7 +26,7 @@ func ScreenActions() []LedstripAnimation {
 		AnimationRead,
 		AnimationWrite,
 		AnimationSprinkle,
-		AnimationFlushLeft,
-		AnimationFlushRight,
+		AnimationFlushReverse,
+		AnimationFlush,
 	}
 }

@@ -7,10 +7,10 @@ type LedstripRst struct {
 	Error  error
 }
 
-func (s LedstripRst) OK() bool {
-	return s.Error == nil
+func (l LedstripRst) OK() bool {
+	return l.Error == nil
 }
 
-func (s LedstripRst) Err() error {
-	return s.Error
+func (l LedstripRst) Err() error {
+	return l.Error
 }
