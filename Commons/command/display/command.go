@@ -2,8 +2,8 @@ package display
 
 import (
 	"context"
+	"errors"
 	"net/url"
-	"os/exec"
 
 	"github.com/EliasStar/DashboardUtils/Commons/command"
 )
@@ -18,9 +18,21 @@ func (d DisplayCmd) IsValid(ctx context.Context) bool {
 }
 
 func (d DisplayCmd) Execute(ctx context.Context) command.Result {
-	cmd := exec.Command("chromium-browser", d.URL)
+	cs, ok := ctx.Value("cmdstore").(command.CmdStore)
+	if !ok {
+		return DisplayRst{errors.New("commandstore not initialized")}
+	}
 
-	err := cmd.Start()
+	cmds := cs.Find("chromium-browser")
+
+	for _, v := range cmds {
+		cs.Kill(v.Process.Pid)
+	}
+
+	_, err := cs.Start("chromium-browser", d.URL)
+	if err != nil {
+		return DisplayRst{err}
+	}
 
 	return nil
 }
