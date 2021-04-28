@@ -37,8 +37,8 @@ func (l LedstripCmd) IsValid(ctx context.Context) bool {
 	return a && b && c && d
 }
 
-func (l LedstripCmd) Execute(ctx context.Context) command.Result {
-	strip, ok := ctx.Value("strip").(hardware.Ledstrip)
+func (l LedstripCmd) Execute(ctx context.Context, key ...command.ContextKey) command.Result {
+	strip, ok := ctx.Value(key[0]).(*hardware.Ledstrip)
 	if !ok {
 		return LedstripRst{
 			command.ErrorRst{errors.New("ledstrip not initialized")},
@@ -67,6 +67,7 @@ func (l LedstripCmd) Execute(ctx context.Context) command.Result {
 			strip.SetLEDColors(l.LEDs, l.Colors)
 		}
 
+	// TODO
 	case AnimationSprinkle:
 		return LedstripRst{
 			command.ErrorRst{errors.New("animation not implemented")},

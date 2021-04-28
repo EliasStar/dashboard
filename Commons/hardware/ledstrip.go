@@ -9,7 +9,7 @@ import (
 	ws2811 "github.com/rpi-ws281x/rpi-ws281x-go"
 )
 
-func MakeLedstrip(pin Pin, ledCount uint, addBurnerLED bool) (Ledstrip, error) {
+func NewLedstrip(pin Pin, ledCount uint, addBurnerLED bool) (*Ledstrip, error) {
 	opt := ws2811.DefaultOptions
 	channel := &opt.Channels[0]
 
@@ -23,10 +23,10 @@ func MakeLedstrip(pin Pin, ledCount uint, addBurnerLED bool) (Ledstrip, error) {
 
 	dev, err := ws2811.MakeWS2811(&opt)
 	if err != nil {
-		return Ledstrip{}, err
+		return nil, err
 	}
 
-	return Ledstrip{dev, addBurnerLED}, nil
+	return &Ledstrip{dev, addBurnerLED}, nil
 }
 
 type Ledstrip struct {

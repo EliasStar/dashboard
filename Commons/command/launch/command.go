@@ -17,7 +17,7 @@ func (l LaunchCmd) IsValid(ctx context.Context) bool {
 	return err == nil
 }
 
-func (l LaunchCmd) Execute(ctx context.Context) command.Result {
+func (l LaunchCmd) Execute(ctx context.Context, key ...command.ContextKey) command.Result {
 	out, err := exec.Command(l.Executable, l.Arguments...).CombinedOutput()
 	return LaunchRst{
 		command.ErrorRst{err},

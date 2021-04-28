@@ -26,7 +26,7 @@ func main() {
 		col, err := parseColor(colorStr)
 		util.FatalIfErr(err)
 
-		strip, err := hw.MakeLedstrip(misc.LedstripDataPin, 62, true)
+		strip, err := hw.NewLedstrip(misc.LedstripDataPin, misc.LedstripLength, misc.LedstripHasBurnerLED)
 		util.FatalIfErr(err)
 
 		util.FatalIfErr(strip.Init())

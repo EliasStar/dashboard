@@ -4,11 +4,14 @@ import (
 	"context"
 	"errors"
 	"net/url"
+	"os/exec"
 
 	"github.com/EliasStar/DashboardUtils/Commons/command"
+	"github.com/EliasStar/DashboardUtils/Commons/util/misc"
 )
 
 type DisplayCmd struct {
+	// TODO: Add url getter and remover
 	URL string
 }
 
@@ -17,22 +20,17 @@ func (d DisplayCmd) IsValid(ctx context.Context) bool {
 	return err == nil
 }
 
-func (d DisplayCmd) Execute(ctx context.Context) command.Result {
-	cs, ok := ctx.Value("cmdstore").(CmdStore)
+func (d DisplayCmd) Execute(ctx context.Context, key ...command.ContextKey) command.Result {
+	cmd, ok := ctx.Value(key[0]).(*exec.Cmd)
 	if !ok {
-		return command.ErrorRst{errors.New("commandstore not initialized")}
+		return command.ErrorRst{errors.New("display not initialized")}
 	}
 
-	cmds := cs.Find("chromium-browser")
+	cmd.Process.Kill()
+	cmd.Process.Release()
 
-	for _, v := range cmds {
-		cs.Kill(v.Process.Pid)
-	}
-
-	_, err := cs.Start("chromium-browser", d.URL)
-	if err != nil {
-		return command.ErrorRst{err}
-	}
+	cmd = exec.Command(misc.DashDBrowser, d.URL)
+	cmd.Start()
 
 	return nil
 }
