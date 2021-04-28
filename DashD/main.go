@@ -3,18 +3,15 @@ package main
 import (
 	"context"
 	"encoding/gob"
+	"errors"
 	"fmt"
 	"log"
 	"net"
 	"os/exec"
 
 	"github.com/EliasStar/DashboardUtils/Commons/command"
-	"github.com/EliasStar/DashboardUtils/Commons/command/display"
-	"github.com/EliasStar/DashboardUtils/Commons/command/launch"
-	"github.com/EliasStar/DashboardUtils/Commons/command/ledstrip"
-	"github.com/EliasStar/DashboardUtils/Commons/command/schedule"
-	"github.com/EliasStar/DashboardUtils/Commons/command/screen"
 	hw "github.com/EliasStar/DashboardUtils/Commons/hardware"
+	nt "github.com/EliasStar/DashboardUtils/Commons/net"
 	"github.com/EliasStar/DashboardUtils/Commons/util"
 	"github.com/EliasStar/DashboardUtils/Commons/util/misc"
 )
@@ -32,11 +29,7 @@ func main() {
 	ctx = context.WithValue(ctx, misc.LedstripContextKey, strip)
 	ctx = context.WithValue(ctx, misc.DisplayContextKey, cmd)
 
-	gob.Register(display.DisplayCmd{})
-	gob.Register(launch.LaunchCmd{})
-	gob.Register(ledstrip.LedstripCmd{})
-	gob.Register(schedule.ScheduleCmd{})
-	gob.Register(screen.ScreenCmd{})
+	nt.InitGOB()
 
 	listener, err := net.Listen("tcp", "127.0.0.1:"+misc.DashDPort)
 	util.FatalIfErr(err)
@@ -51,16 +44,28 @@ func main() {
 			continue
 		}
 
-		fmt.Println("New Connection:", con.RemoteAddr())
 		go handleConnection(con, ctx)
 	}
 }
 
 func handleConnection(con net.Conn, ctx context.Context) {
+	addr := con.RemoteAddr()
 	dec := gob.NewDecoder(con)
+	enc := gob.NewEncoder(con)
+
+	fmt.Println("New Connection:", addr)
 
 	var cmd command.Command
 	for dec.Decode(&cmd) == nil {
-		fmt.Printf("(%v, %T)\n", cmd, cmd)
+		fmt.Printf("|%v|> Received: %T\n", addr, cmd)
+
+		var rst command.Result
+		rst = command.ErrorRst{errors.New("command invalid")}
+
+		if cmd.IsValid(ctx) {
+			rst = cmd.Execute(ctx)
+		}
+
+		enc.Encode(&rst)
 	}
 }

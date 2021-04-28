@@ -8,6 +8,7 @@ import (
 
 	"github.com/EliasStar/DashboardUtils/Commons/command"
 	"github.com/EliasStar/DashboardUtils/Commons/hardware"
+	"github.com/EliasStar/DashboardUtils/Commons/util/misc"
 )
 
 type LedstripCmd struct {
@@ -37,8 +38,8 @@ func (l LedstripCmd) IsValid(ctx context.Context) bool {
 	return a && b && c && d
 }
 
-func (l LedstripCmd) Execute(ctx context.Context, key ...command.ContextKey) command.Result {
-	strip, ok := ctx.Value(key[0]).(*hardware.Ledstrip)
+func (l LedstripCmd) Execute(ctx context.Context) command.Result {
+	strip, ok := ctx.Value(misc.LedstripContextKey).(*hardware.Ledstrip)
 	if !ok {
 		return LedstripRst{
 			command.ErrorRst{errors.New("ledstrip not initialized")},

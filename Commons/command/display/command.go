@@ -20,8 +20,8 @@ func (d DisplayCmd) IsValid(ctx context.Context) bool {
 	return err == nil
 }
 
-func (d DisplayCmd) Execute(ctx context.Context, key ...command.ContextKey) command.Result {
-	cmd, ok := ctx.Value(key[0]).(*exec.Cmd)
+func (d DisplayCmd) Execute(ctx context.Context) command.Result {
+	cmd, ok := ctx.Value(misc.DisplayContextKey).(*exec.Cmd)
 	if !ok {
 		return command.ErrorRst{errors.New("display not initialized")}
 	}

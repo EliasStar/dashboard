@@ -27,7 +27,7 @@ func (s ScheduleCmd) IsValid(ctx context.Context) bool {
 
 }
 
-func (s ScheduleCmd) Execute(ctx context.Context, key ...command.ContextKey) command.Result {
+func (s ScheduleCmd) Execute(ctx context.Context) command.Result {
 	// TODO
 	return nil
 }

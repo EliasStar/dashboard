@@ -2,15 +2,12 @@ package main
 
 import (
 	"encoding/gob"
+	"fmt"
 	"net"
 	"os"
 
 	"github.com/EliasStar/DashboardUtils/Commons/command"
-	"github.com/EliasStar/DashboardUtils/Commons/command/display"
-	"github.com/EliasStar/DashboardUtils/Commons/command/launch"
-	"github.com/EliasStar/DashboardUtils/Commons/command/ledstrip"
-	"github.com/EliasStar/DashboardUtils/Commons/command/schedule"
-	"github.com/EliasStar/DashboardUtils/Commons/command/screen"
+	nt "github.com/EliasStar/DashboardUtils/Commons/net"
 	"github.com/EliasStar/DashboardUtils/Commons/util"
 	"github.com/EliasStar/DashboardUtils/Commons/util/misc"
 )
@@ -21,20 +18,18 @@ func main() {
 
 	defer con.Close()
 
-	gob.Register(display.DisplayCmd{})
-	gob.Register(launch.LaunchCmd{})
-	gob.Register(ledstrip.LedstripCmd{})
-	gob.Register(schedule.ScheduleCmd{})
-	gob.Register(screen.ScreenCmd{})
+	nt.InitGOB()
 
 	enc := gob.NewEncoder(con)
+	dec := gob.NewDecoder(con)
 
-	cmd := command.Command(&screen.ScreenCmd{
-		screen.ActionRead,
-		screen.ButtonPower,
-		0,
-	})
+	for {
+		var cmd command.Command
+		// TODO: Input
+		enc.Encode(&cmd)
 
-	enc.Encode(&cmd)
-	enc.Encode(&cmd)
+		var rst command.Result
+		dec.Decode(&rst)
+		fmt.Printf("%#v\n", rst)
+	}
 }

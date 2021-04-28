@@ -22,7 +22,7 @@ func (s ScreenCmd) IsValid(ctx context.Context) bool {
 	return a && b && c && d
 }
 
-func (s ScreenCmd) Execute(ctx context.Context, key ...command.ContextKey) command.Result {
+func (s ScreenCmd) Execute(ctx context.Context) command.Result {
 	switch s.Action {
 	case ActionRead:
 		val, err := s.Button.Pin().Read()
