@@ -1,5 +1,7 @@
 package command
 
+import "errors"
+
 type Result interface {
 	IsOK() bool
 	Err() error
@@ -15,9 +17,15 @@ func (o OKRst) Err() error {
 	return nil
 }
 
-func NewErrorRst(err error) ErrorRst {
+func NewErrorRstFromError(err error) ErrorRst {
 	return ErrorRst{
 		Error: err,
+	}
+}
+
+func NewErrorRstFromString(err string) ErrorRst {
+	return ErrorRst{
+		Error: errors.New(err),
 	}
 }
 

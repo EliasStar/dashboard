@@ -20,7 +20,7 @@ func (l LaunchCmd) IsValid(ctx context.Context) bool {
 func (l LaunchCmd) Execute(ctx context.Context) Result {
 	out, err := exec.Command(l.Executable, l.Arguments...).CombinedOutput()
 	if err != nil {
-		return NewErrorRst(err)
+		return NewErrorRstFromError(err)
 	}
 
 	return LaunchRst(string(out))

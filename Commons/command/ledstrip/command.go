@@ -2,7 +2,6 @@ package ledstrip
 
 import (
 	"context"
-	"errors"
 	"image/color"
 	"time"
 
@@ -41,7 +40,7 @@ func (l LedstripCmd) IsValid(ctx context.Context) bool {
 func (l LedstripCmd) Execute(ctx context.Context) Result {
 	strip, ok := ctx.Value(misc.LedstripContextKey).(*hardware.Ledstrip)
 	if !ok {
-		return NewErrorRst(errors.New("ledstrip not initialized"))
+		return NewErrorRstFromString("ledstrip not initialized")
 	}
 
 	switch l.Animation {
@@ -65,15 +64,45 @@ func (l LedstripCmd) Execute(ctx context.Context) Result {
 			strip.SetLEDColors(l.LEDs, l.Colors)
 		}
 
-	case AnimationSprinkle:
-		return NewErrorRst(errors.New("animation not implemented")) // TODO AnimationSprinkle
-
 	case AnimationFlush:
-		return NewErrorRst(errors.New("animation not implemented")) // TODO AnimationFlush
+		if len(l.LEDs) == 0 {
+			for i := uint(0); i < strip.Length(); i++ {
+				strip.SetSingleLEDColor(i, l.Colors[0])
+				time.Sleep(l.AnimationLength / time.Duration(strip.Length()))
+			}
+		} else if len(l.Colors) == 1 {
+			for i := 0; i < len(l.LEDs); i++ {
+				strip.SetSingleLEDColor(l.LEDs[i], l.Colors[0])
+				time.Sleep(l.AnimationLength / time.Duration(len(l.LEDs)))
+			}
+		} else {
+			for i := 0; i < len(l.LEDs); i++ {
+				strip.SetSingleLEDColor(l.LEDs[i], l.Colors[i])
+				time.Sleep(l.AnimationLength / time.Duration(len(l.LEDs)))
+			}
+		}
 
 	case AnimationFlushReverse:
-		return NewErrorRst(errors.New("animation not implemented")) // TODO AnimationFlushReverse
+		if len(l.LEDs) == 0 {
+			for i := strip.Length() - 1; i >= 0; i-- {
+				strip.SetSingleLEDColor(i, l.Colors[0])
+				time.Sleep(l.AnimationLength / time.Duration(strip.Length()))
+			}
+		} else if len(l.Colors) == 1 {
+			for i := len(l.LEDs) - 1; i >= 0; i-- {
+				strip.SetSingleLEDColor(l.LEDs[i], l.Colors[0])
+				time.Sleep(l.AnimationLength / time.Duration(len(l.LEDs)))
+			}
+		} else {
+			for i := len(l.LEDs) - 1; i >= 0; i-- {
+				strip.SetSingleLEDColor(l.LEDs[i], l.Colors[i])
+				time.Sleep(l.AnimationLength / time.Duration(len(l.LEDs)))
+			}
+		}
+
+	case AnimationSprinkle:
+		return NewErrorRstFromString("animation not implemented") // TODO AnimationSprinkle
 	}
 
-	return NewErrorRst(strip.Render())
+	return NewErrorRstFromError(strip.Render())
 }

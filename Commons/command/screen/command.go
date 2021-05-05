@@ -27,7 +27,7 @@ func (s ScreenCmd) Execute(ctx context.Context) Result {
 	case ActionRead:
 		val, err := s.Button.Pin().Read()
 		if err != nil {
-			return NewErrorRst(err)
+			return NewErrorRstFromError(err)
 		}
 
 		return ScreenRst(val)

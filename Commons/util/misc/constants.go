@@ -1,7 +1,6 @@
 package misc
 
 import (
-	"github.com/EliasStar/DashboardUtils/Commons/command"
 	"github.com/EliasStar/DashboardUtils/Commons/hardware"
 )
 
@@ -16,7 +15,9 @@ const (
 	DashDBrowser = "chromium-browser"
 )
 
+type ContextKey uint
+
 const (
-	LedstripContextKey command.ContextKey = iota
+	LedstripContextKey ContextKey = iota
 	DisplayContextKey
 )
