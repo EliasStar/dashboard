@@ -3,28 +3,28 @@ package net
 import (
 	"encoding/gob"
 
-	. "github.com/EliasStar/DashboardUtils/Commons/command"
-	. "github.com/EliasStar/DashboardUtils/Commons/command/display"
-	. "github.com/EliasStar/DashboardUtils/Commons/command/launch"
-	. "github.com/EliasStar/DashboardUtils/Commons/command/ledstrip"
-	. "github.com/EliasStar/DashboardUtils/Commons/command/schedule"
-	. "github.com/EliasStar/DashboardUtils/Commons/command/screen"
+	"github.com/EliasStar/DashboardUtils/Commons/command"
+	"github.com/EliasStar/DashboardUtils/Commons/command/display"
+	"github.com/EliasStar/DashboardUtils/Commons/command/launch"
+	"github.com/EliasStar/DashboardUtils/Commons/command/ledstrip"
+	"github.com/EliasStar/DashboardUtils/Commons/command/schedule"
+	"github.com/EliasStar/DashboardUtils/Commons/command/screen"
 )
 
 func InitGOB() {
-	gob.Register(ErrorRst{})
-	gob.Register(OKRst{})
+	gob.Register(command.ErrorRst{})
+	gob.Register(command.OKRst{})
 
-	gob.Register(DisplayCmd{})
+	gob.Register(display.DisplayCmd{})
 
-	gob.Register(LaunchCmd{})
-	gob.Register(LaunchRst(""))
+	gob.Register(launch.LaunchCmd{})
+	gob.Register(launch.LaunchRst(""))
 
-	gob.Register(LedstripCmd{})
-	gob.Register(LedstripRst{})
+	gob.Register(ledstrip.LedstripCmd{})
+	gob.Register(ledstrip.LedstripRst{})
 
-	gob.Register(ScheduleCmd{})
+	gob.Register(schedule.ScheduleCmd{})
 
-	gob.Register(ScreenCmd{})
-	gob.Register(ScreenRst(false))
+	gob.Register(screen.ScreenCmd{})
+	gob.Register(screen.ScreenRst(false))
 }
