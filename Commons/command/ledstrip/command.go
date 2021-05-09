@@ -24,7 +24,7 @@ func (l LedstripCmd) IsValid(ctx context.Context) bool {
 	}
 
 	for _, v := range l.LEDs {
-		if v >= strip.Length() {
+		if int(v) >= strip.Length() {
 			return false
 		}
 	}
@@ -66,8 +66,8 @@ func (l LedstripCmd) Execute(ctx context.Context) Result {
 
 	case AnimationFlush:
 		if len(l.LEDs) == 0 {
-			for i := uint(0); i < strip.Length(); i++ {
-				strip.SetSingleLEDColor(i, l.Colors[0])
+			for i := 0; i < strip.Length(); i++ {
+				strip.SetSingleLEDColor(uint(i), l.Colors[0])
 				time.Sleep(l.AnimationLength / time.Duration(strip.Length()))
 			}
 		} else if len(l.Colors) == 1 {
@@ -85,7 +85,7 @@ func (l LedstripCmd) Execute(ctx context.Context) Result {
 	case AnimationFlushReverse:
 		if len(l.LEDs) == 0 {
 			for i := strip.Length() - 1; i >= 0; i-- {
-				strip.SetSingleLEDColor(i, l.Colors[0])
+				strip.SetSingleLEDColor(uint(i), l.Colors[0])
 				time.Sleep(l.AnimationLength / time.Duration(strip.Length()))
 			}
 		} else if len(l.Colors) == 1 {
@@ -99,9 +99,6 @@ func (l LedstripCmd) Execute(ctx context.Context) Result {
 				time.Sleep(l.AnimationLength / time.Duration(len(l.LEDs)))
 			}
 		}
-
-	case AnimationSprinkle:
-		return NewErrorRstFromString("animation not implemented") // TODO AnimationSprinkle
 	}
 
 	return NewErrorRstFromError(strip.Render())

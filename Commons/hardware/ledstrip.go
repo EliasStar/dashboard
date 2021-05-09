@@ -43,12 +43,12 @@ func (l *Ledstrip) LEDs() []uint32 {
 	return l.Leds(0)
 }
 
-func (l *Ledstrip) Length() uint {
-	return uint(len(l.LEDs()))
+func (l *Ledstrip) Length() int {
+	return len(l.LEDs())
 }
 
 func (l *Ledstrip) SetSingleLEDColor(index uint, c color.Color) {
-	if index >= l.Length() {
+	if int(index) >= l.Length() {
 		return
 	}
 
@@ -57,7 +57,7 @@ func (l *Ledstrip) SetSingleLEDColor(index uint, c color.Color) {
 }
 
 func (l *Ledstrip) GetSingleLEDColor(index uint) color.Color {
-	if index >= l.Length() {
+	if int(index) >= l.Length() {
 		return nil
 	}
 
@@ -76,14 +76,12 @@ func (l *Ledstrip) SetLEDColors(indicies []uint, c []color.Color) {
 	}
 }
 
-func (l *Ledstrip) GetLEDColors(indicies []uint) []color.Color {
-	c := make([]color.Color, len(indicies))
-
-	for i, v := range indicies {
-		c[i] = l.GetSingleLEDColor(v)
+func (l *Ledstrip) GetLEDColors(indicies []uint) (c []color.Color) {
+	for _, v := range indicies {
+		c = append(c, l.GetSingleLEDColor(v))
 	}
 
-	return c
+	return
 }
 
 func (l *Ledstrip) SetStripColor(c color.Color) {
@@ -95,12 +93,10 @@ func (l *Ledstrip) SetStripColor(c color.Color) {
 	}
 }
 
-func (l *Ledstrip) GetStripColors() []color.Color {
-	c := make([]color.Color, l.Length())
-
-	for i, v := range l.LEDs() {
-		c[i] = col.RGBA32{Color: v}
+func (l *Ledstrip) GetStripColors() (c []color.Color) {
+	for _, v := range l.LEDs() {
+		c = append(c, col.RGBA32{Color: v})
 	}
 
-	return c
+	return
 }

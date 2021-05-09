@@ -11,34 +11,31 @@ import (
 	"time"
 
 	"github.com/EliasStar/DashboardUtils/Commons/command"
-	"github.com/EliasStar/DashboardUtils/Commons/command/screen"
 	. "github.com/EliasStar/DashboardUtils/Commons/command/screen"
 	"github.com/EliasStar/DashboardUtils/Commons/util"
 	"github.com/EliasStar/DashboardUtils/Commons/util/misc"
 )
 
 func main() {
-	con, conErr := net.Dial("tcp", "127.0.0.1:"+misc.DashDPort)
-	if conErr != nil {
-		for _, b := range ScreenButtons() {
-			util.PanicIfErr(b.Pin().Mode(true))
-		}
-	} else {
-		defer con.Close()
-	}
-
 	cmd := parseCommand()
-
 	var rst command.Result
+
+	con, conErr := net.Dial("tcp", "127.0.0.1:"+misc.DashDPort)
 	if conErr == nil {
+		defer con.Close()
+
 		gob.Register(command.ErrorRst{})
 		gob.Register(command.OKRst{})
-		gob.Register(screen.ScreenCmd{})
-		gob.Register(screen.ScreenRst(false))
+		gob.Register(ScreenCmd{})
+		gob.Register(ScreenRst(false))
 
 		util.PanicIfErr(gob.NewEncoder(con).Encode(&cmd))
 		util.PanicIfErr(gob.NewDecoder(con).Decode(&rst))
 	} else {
+		for _, b := range ScreenButtons() {
+			util.PanicIfErr(b.Pin().Mode(true))
+		}
+
 		rst = cmd.Execute(context.Background())
 	}
 
@@ -52,24 +49,23 @@ func main() {
 	}
 }
 
-func parseCommand() command.Command {
+func parseCommand() (cmd command.Command) {
 	switch os.Args[1] {
 	case "read", "press", "release":
-		return ScreenCmd{
-			Action:      ScreenAction(os.Args[1]),
-			Button:      parseButton(os.Args[2]),
-			ToggleDelay: 0,
+		cmd = ScreenCmd{
+			Action: ScreenAction(os.Args[1]),
+			Button: parseButton(os.Args[2]),
 		}
 
 	case "toggle":
 		set := flag.NewFlagSet("toggle", flag.ContinueOnError)
-		delay := set.Uint("delay", 250, "`ms` between pressing and releasing on toggle")
+		delay := set.Duration("delay", 250*time.Millisecond, "delay between pressing and releasing on toggle")
 		util.PanicIfErr(set.Parse(os.Args[2:]))
 
-		return ScreenCmd{
+		cmd = ScreenCmd{
 			Action:      ActionToggle,
 			Button:      parseButton(set.Arg(0)),
-			ToggleDelay: time.Duration(*delay) * time.Millisecond,
+			ToggleDelay: *delay,
 		}
 
 	case "reset":
@@ -83,27 +79,29 @@ func parseCommand() command.Command {
 		log.Panic("screen {read|press|release|toggle|reset} [-delay=<ms>] [{power|menu|plus|minus|source}]")
 	}
 
-	return nil
+	return
 }
 
-func parseButton(pin string) ScreenButton {
+func parseButton(pin string) (button ScreenButton) {
 	switch pin {
 	case "power":
-		return ButtonPower
+		button = ButtonPower
 
 	case "menu":
-		return ButtonMenu
+		button = ButtonMenu
 
 	case "plus":
-		return ButtonPlus
+		button = ButtonPlus
 
 	case "minus":
-		return ButtonMinus
+		button = ButtonMinus
 
 	case "source":
-		return ButtonSource
+		button = ButtonSource
+
+	default:
+		log.Fatal("possible pin names: power, menu, plus, minus, source")
 	}
 
-	log.Fatal("possible pin names: power, menu, plus, minus, source")
-	return 0
+	return
 }
