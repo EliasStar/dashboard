@@ -10,7 +10,7 @@ export GOOS=windows
 export GOARCH=amd64
 
 cd DashConnect/
-go build -o=../build/windows/ .
+go build -o=../build/windows/DashConnect .
 cd ..
 
 mkdir build/linux/
@@ -19,7 +19,7 @@ export GOOS=linux
 export GOARCH=amd64
 
 cd DashConnect/
-go build -o=../build/linux/ .
+go build -o=../build/linux/dash-connect .
 cd ..
 
 # Dashboard
@@ -32,15 +32,15 @@ export CGO_ENABLED=1
 export CC=arm-linux-gnueabi-gcc
 
 cd ScrnBtn/
-go build -o=../build/dashboard/ .
+go build -o=../build/dashboard/screen .
 cd ..
 
 cd LedstripCtrl/
-go build -o=../build/dashboard/ .
+go build -o=../build/dashboard/ledstrip .
 cd ..
 
 cd DashD/
-go build -o=../build/dashboard/ .
+go build -o=../build/dashboard/dashd .
 cd ..
 
 unset GOOS
