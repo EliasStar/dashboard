@@ -1,15 +1,18 @@
-package hardware
+package ledstrip
 
 import (
 	"image/color"
 
-	"github.com/EliasStar/DashboardUtils/Commons/util"
-	col "github.com/EliasStar/DashboardUtils/Commons/util/color"
-
 	ws2811 "github.com/rpi-ws281x/rpi-ws281x-go"
 )
 
-func NewLedstrip(pin Pin, ledCount uint, addBurnerLED bool) (*Ledstrip, error) {
+const (
+	Pin          uint = 18
+	Length       uint = 62
+	HasBurnerLED bool = true
+)
+
+func New(pin uint, ledCount uint, hasBurnerLED bool) (*Ledstrip, error) {
 	opt := ws2811.DefaultOptions
 	channel := &opt.Channels[0]
 
@@ -17,7 +20,7 @@ func NewLedstrip(pin Pin, ledCount uint, addBurnerLED bool) (*Ledstrip, error) {
 	channel.LedCount = int(ledCount)
 	channel.Brightness = 255
 
-	if addBurnerLED {
+	if hasBurnerLED {
 		channel.LedCount++
 	}
 
@@ -26,7 +29,7 @@ func NewLedstrip(pin Pin, ledCount uint, addBurnerLED bool) (*Ledstrip, error) {
 		return nil, err
 	}
 
-	return &Ledstrip{dev, addBurnerLED}, nil
+	return &Ledstrip{dev, hasBurnerLED}, nil
 }
 
 type Ledstrip struct {
@@ -61,7 +64,7 @@ func (l *Ledstrip) GetSingleLEDColor(index uint) color.Color {
 		return nil
 	}
 
-	return col.RGBA32{Color: l.LEDs()[index]}
+	return RGBA32{Color: l.LEDs()[index]}
 }
 
 func (l *Ledstrip) SetLEDColor(indicies []uint, c color.Color) {
@@ -71,7 +74,12 @@ func (l *Ledstrip) SetLEDColor(indicies []uint, c color.Color) {
 }
 
 func (l *Ledstrip) SetLEDColors(indicies []uint, c []color.Color) {
-	for i := 0; i < util.Min(len(indicies), len(c)); i++ {
+	length := len(indicies)
+	if len(c) < len(indicies) {
+		length = len(c)
+	}
+
+	for i := 0; i < length; i++ {
 		l.SetSingleLEDColor(indicies[i], c[i])
 	}
 }
@@ -95,7 +103,7 @@ func (l *Ledstrip) SetStripColor(c color.Color) {
 
 func (l *Ledstrip) GetStripColors() (c []color.Color) {
 	for _, v := range l.LEDs() {
-		c = append(c, col.RGBA32{Color: v})
+		c = append(c, RGBA32{Color: v})
 	}
 
 	return

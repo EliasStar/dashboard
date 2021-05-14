@@ -8,34 +8,33 @@ import (
 	"net"
 	"os/exec"
 
-	cd "github.com/EliasStar/DashboardUtils/Commons/command"
-	sn "github.com/EliasStar/DashboardUtils/Commons/command/screen"
-	hw "github.com/EliasStar/DashboardUtils/Commons/hardware"
-	nt "github.com/EliasStar/DashboardUtils/Commons/net"
-	"github.com/EliasStar/DashboardUtils/Commons/util"
-	"github.com/EliasStar/DashboardUtils/Commons/util/misc"
+	"github.com/EliasStar/Dashboard/DashD/command"
+	"github.com/EliasStar/Dashboard/DashD/display"
+	"github.com/EliasStar/Dashboard/DashD/ledstrip"
+	"github.com/EliasStar/Dashboard/DashD/screen"
+	"github.com/EliasStar/Dashboard/DashD/util"
 )
 
 func main() {
-	for _, b := range sn.ScreenButtons() {
-		util.PanicIfErr(b.Pin().Mode(true))
+	for _, b := range screen.Buttons() {
+		util.PanicIfErr(b.SetOutput())
 	}
 
-	strip, err := hw.NewLedstrip(misc.LedstripDataPin, misc.LedstripLength, misc.LedstripHasBurnerLED)
+	strip, err := ledstrip.New(ledstrip.Pin, ledstrip.Length, ledstrip.HasBurnerLED)
 	util.PanicIfErr(err)
 
 	util.PanicIfErr(strip.Init())
 	defer strip.Fini()
 
-	cmd := exec.Command(misc.DashDBrowser)
+	cmd := exec.Command(display.Browser)
 
 	ctx := context.Background()
-	ctx = context.WithValue(ctx, misc.LedstripContextKey, strip)
-	ctx = context.WithValue(ctx, misc.DisplayContextKey, cmd)
+	ctx = context.WithValue(ctx, ledstrip.ContextKey{}, strip)
+	ctx = context.WithValue(ctx, display.ContextKey{}, cmd)
 
-	nt.InitGOBFull()
+	util.InitGOBFull()
 
-	listener, err := net.Listen("tcp", "127.0.0.1:"+misc.DashDPort)
+	listener, err := net.Listen("tcp", "127.0.0.1:"+util.GetPort())
 	util.PanicIfErr(err)
 
 	defer listener.Close()
@@ -59,11 +58,11 @@ func handleConnection(con net.Conn, ctx context.Context) {
 
 	fmt.Println("New Connection:", addr)
 
-	var cmd cd.Command
+	var cmd command.Command
 	for dec.Decode(&cmd) == nil {
 		fmt.Printf("|%v|> Received: %T\n", addr, cmd)
 
-		var rst cd.Result = cd.ErrorRst("command invalid")
+		var rst command.Result = command.ErrorRst("command invalid")
 
 		if cmd.IsValid(ctx) {
 			rst = cmd.Execute(ctx)

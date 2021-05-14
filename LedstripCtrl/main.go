@@ -14,37 +14,33 @@ import (
 	"strings"
 	"time"
 
-	"github.com/EliasStar/DashboardUtils/Commons/command"
-	ls "github.com/EliasStar/DashboardUtils/Commons/command/ledstrip"
-	hw "github.com/EliasStar/DashboardUtils/Commons/hardware"
-	nt "github.com/EliasStar/DashboardUtils/Commons/net"
-	"github.com/EliasStar/DashboardUtils/Commons/util"
-	cl "github.com/EliasStar/DashboardUtils/Commons/util/color"
-	"github.com/EliasStar/DashboardUtils/Commons/util/misc"
+	"github.com/EliasStar/Dashboard/DashD/command"
+	"github.com/EliasStar/Dashboard/DashD/ledstrip"
+	"github.com/EliasStar/Dashboard/DashD/util"
 )
 
 func main() {
 	cmd := parseCommand()
 	var rst command.Result
 
-	con, conErr := net.Dial("tcp", "127.0.0.1:"+misc.DashDPort)
+	con, conErr := net.Dial("tcp", "127.0.0.1:"+util.GetPort())
 	if conErr == nil {
 		defer con.Close()
 
-		nt.InitGOBBasic()
-		nt.InitGOBLedstrip()
+		util.InitGOBBasic()
+		util.InitGOBLedstrip()
 
 		util.PanicIfErr(gob.NewEncoder(con).Encode(&cmd))
 		util.PanicIfErr(gob.NewDecoder(con).Decode(&rst))
 	} else {
-		strip, err := hw.NewLedstrip(misc.LedstripDataPin, misc.LedstripLength, misc.LedstripHasBurnerLED)
+		strip, err := ledstrip.New(ledstrip.Pin, ledstrip.Length, ledstrip.HasBurnerLED)
 		util.PanicIfErr(err)
 
 		util.PanicIfErr(strip.Init())
 		defer strip.Fini()
 
 		ctx := context.Background()
-		ctx = context.WithValue(ctx, misc.LedstripContextKey, strip)
+		ctx = context.WithValue(ctx, ledstrip.ContextKey{}, strip)
 
 		rst = cmd.Execute(ctx)
 	}
@@ -53,7 +49,7 @@ func main() {
 		log.Panic(rst)
 	}
 
-	ledRst, ok := rst.(ls.LedstripRst)
+	ledRst, ok := rst.(ledstrip.Result)
 	if ok {
 		fmt.Println(ledRst)
 	}
@@ -75,13 +71,13 @@ func parseCommand() (cmd command.Command) {
 
 	switch os.Args[1] {
 	case "read":
-		cmd = ls.LedstripCmd{
-			Animation: ls.AnimationRead,
+		cmd = ledstrip.Command{
+			Animation: ledstrip.AnimationRead,
 			LEDs:      leds,
 		}
 
 	case "write":
-		cmd = ls.LedstripCmd{
+		cmd = ledstrip.Command{
 			Animation:       parseAnimation(*anim),
 			LEDs:            leds,
 			Colors:          parseColors(set.Args()),
@@ -148,16 +144,16 @@ func parseLEDFilter(ledFilter string) (leds []uint, err error) {
 	return
 }
 
-func parseAnimation(anim string) (animation ls.LedstripAnimation) {
+func parseAnimation(anim string) (animation ledstrip.Animation) {
 	switch anim {
 	case "flush":
-		animation = ls.AnimationFlush
+		animation = ledstrip.AnimationFlush
 
 	case "reverseflush":
-		animation = ls.AnimationFlushReverse
+		animation = ledstrip.AnimationFlushReverse
 
 	case "write":
-		animation = ls.AnimationWrite
+		animation = ledstrip.AnimationWrite
 
 	default:
 		log.Panic("possible animations: flush, reverseflush, write")
@@ -179,7 +175,7 @@ func parseColors(colorStrings []string) (colors []color.Color) {
 			log.Panic("possible color syntax: 0xRRGGBB, #RRGGBB, RRGGBB")
 		}
 
-		color := cl.RGBA32{Color: uint32(col)}
+		color := ledstrip.RGBA32{Color: uint32(col)}
 		colors = append(colors, color)
 	}
 

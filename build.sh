@@ -43,6 +43,10 @@ cd DashD/
 go build -o=../build/dashboard/dashd .
 cd ..
 
+cp port.conf ./build/dashboard/
+cp port.conf ./build/linux/
+cp port.conf ./build/windows/
+
 unset GOOS
 unset GOARCH
 unset GOARM

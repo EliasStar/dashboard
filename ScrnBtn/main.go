@@ -10,29 +10,27 @@ import (
 	"os"
 	"time"
 
-	"github.com/EliasStar/DashboardUtils/Commons/command"
-	sn "github.com/EliasStar/DashboardUtils/Commons/command/screen"
-	nt "github.com/EliasStar/DashboardUtils/Commons/net"
-	"github.com/EliasStar/DashboardUtils/Commons/util"
-	"github.com/EliasStar/DashboardUtils/Commons/util/misc"
+	"github.com/EliasStar/Dashboard/DashD/command"
+	"github.com/EliasStar/Dashboard/DashD/screen"
+	"github.com/EliasStar/Dashboard/DashD/util"
 )
 
 func main() {
 	cmd := parseCommand()
 	var rst command.Result
 
-	con, conErr := net.Dial("tcp", "127.0.0.1:"+misc.DashDPort)
+	con, conErr := net.Dial("tcp", "127.0.0.1:"+util.GetPort())
 	if conErr == nil {
 		defer con.Close()
 
-		nt.InitGOBBasic()
-		nt.InitGOBScreen()
+		util.InitGOBBasic()
+		util.InitGOBScreen()
 
 		util.PanicIfErr(gob.NewEncoder(con).Encode(&cmd))
 		util.PanicIfErr(gob.NewDecoder(con).Decode(&rst))
 	} else {
-		for _, b := range sn.ScreenButtons() {
-			util.PanicIfErr(b.Pin().Mode(true))
+		for _, b := range screen.Buttons() {
+			util.PanicIfErr(b.SetOutput())
 		}
 
 		rst = cmd.Execute(context.Background())
@@ -42,7 +40,7 @@ func main() {
 		log.Panic(rst)
 	}
 
-	snRst, ok := rst.(sn.ScreenRst)
+	snRst, ok := rst.(screen.Result)
 	if ok {
 		fmt.Println(snRst)
 	}
@@ -55,8 +53,8 @@ func parseCommand() (cmd command.Command) {
 
 	switch os.Args[1] {
 	case "read", "press", "release":
-		cmd = sn.ScreenCmd{
-			Action: sn.ScreenAction(os.Args[1]),
+		cmd = screen.Command{
+			Action: screen.Action(os.Args[1]),
 			Button: parseButton(os.Args[2]),
 		}
 
@@ -65,16 +63,16 @@ func parseCommand() (cmd command.Command) {
 		delay := set.Duration("delay", 250*time.Millisecond, "delay between pressing and releasing on toggle")
 		util.PanicIfErr(set.Parse(os.Args[2:]))
 
-		cmd = sn.ScreenCmd{
-			Action:      sn.ActionToggle,
+		cmd = screen.Command{
+			Action:      screen.ActionToggle,
 			Button:      parseButton(set.Arg(0)),
 			ToggleDelay: *delay,
 		}
 
 	case "reset":
-		for _, b := range sn.ScreenButtons() {
-			b.Pin().Write(false)
-			b.Pin().Mode(false)
+		for _, b := range screen.Buttons() {
+			b.Write(false)
+			b.SetInput()
 		}
 		os.Exit(0)
 
@@ -85,22 +83,22 @@ func parseCommand() (cmd command.Command) {
 	return
 }
 
-func parseButton(pin string) (button sn.ScreenButton) {
+func parseButton(pin string) (button screen.Button) {
 	switch pin {
 	case "power":
-		button = sn.ButtonPower
+		button = screen.ButtonPower
 
 	case "menu":
-		button = sn.ButtonMenu
+		button = screen.ButtonMenu
 
 	case "plus":
-		button = sn.ButtonPlus
+		button = screen.ButtonPlus
 
 	case "minus":
-		button = sn.ButtonMinus
+		button = screen.ButtonMinus
 
 	case "source":
-		button = sn.ButtonSource
+		button = screen.ButtonSource
 
 	default:
 		log.Panic("possible pin names: power, menu, plus, minus, source")

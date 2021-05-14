@@ -11,24 +11,22 @@ import (
 	"strings"
 	"time"
 
-	"github.com/EliasStar/DashboardUtils/Commons/command"
-	"github.com/EliasStar/DashboardUtils/Commons/command/display"
-	"github.com/EliasStar/DashboardUtils/Commons/command/launch"
-	"github.com/EliasStar/DashboardUtils/Commons/command/ledstrip"
-	"github.com/EliasStar/DashboardUtils/Commons/command/schedule"
-	"github.com/EliasStar/DashboardUtils/Commons/command/screen"
-	nt "github.com/EliasStar/DashboardUtils/Commons/net"
-	"github.com/EliasStar/DashboardUtils/Commons/util"
-	"github.com/EliasStar/DashboardUtils/Commons/util/misc"
+	"github.com/EliasStar/Dashboard/DashD/command"
+	"github.com/EliasStar/Dashboard/DashD/display"
+	"github.com/EliasStar/Dashboard/DashD/launch"
+	"github.com/EliasStar/Dashboard/DashD/ledstrip"
+	"github.com/EliasStar/Dashboard/DashD/schedule"
+	"github.com/EliasStar/Dashboard/DashD/screen"
+	"github.com/EliasStar/Dashboard/DashD/util"
 )
 
 func main() {
-	con, err := net.Dial("tcp", os.Args[1]+":"+misc.DashDPort)
+	con, err := net.Dial("tcp", os.Args[1]+":port")
 	util.PanicIfErr(err)
 
 	defer con.Close()
 
-	nt.InitGOBFull()
+	util.InitGOBFull()
 
 	enc := gob.NewEncoder(con)
 	dec := gob.NewDecoder(con)
@@ -42,26 +40,26 @@ func main() {
 
 		switch in[0] {
 		case "display":
-			cmd = display.DisplayCmd{display.DisplayAction(in[1]), in[2]}
+			cmd = display.Command{display.Action(in[1]), in[2]}
 
 		case "launch":
-			cmd = launch.LaunchCmd{in[1], in[2:]}
+			cmd = launch.Command{in[1], in[2:]}
 
 		case "ledstrip":
-			cmd = ledstrip.LedstripCmd{}
+			cmd = ledstrip.Command{}
 
 		case "schedule":
-			cmd = schedule.ScheduleCmd{}
+			cmd = schedule.Command{}
 
 		case "screen":
-			action := screen.ScreenAction(in[1])
+			action := screen.Action(in[1])
 
 			val, err := strconv.ParseUint(in[2], 10, 0)
 			if err != nil {
 				log.Println(err)
 				continue
 			}
-			btn := screen.ScreenButton(val)
+			btn := screen.Button(val)
 
 			var delay time.Duration
 			if action == screen.ActionToggle {
@@ -74,7 +72,7 @@ func main() {
 				delay = time.Microsecond * time.Duration(val)
 			}
 
-			cmd = screen.ScreenCmd{action, btn, delay}
+			cmd = screen.Command{action, btn, delay}
 
 		default:
 			continue

@@ -4,7 +4,7 @@ type Result interface {
 	IsOK() bool
 }
 
-func NewResultFromError(err error) Result {
+func ResultFromError(err error) Result {
 	if err == nil {
 		return OKRst{}
 	}
