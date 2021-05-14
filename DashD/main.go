@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"os/exec"
 
 	cd "github.com/EliasStar/DashboardUtils/Commons/command"
+	sn "github.com/EliasStar/DashboardUtils/Commons/command/screen"
 	hw "github.com/EliasStar/DashboardUtils/Commons/hardware"
 	nt "github.com/EliasStar/DashboardUtils/Commons/net"
 	"github.com/EliasStar/DashboardUtils/Commons/util"
@@ -15,9 +17,9 @@ import (
 )
 
 func main() {
-	// for _, b := range sn.ScreenButtons() {
-	// 	util.PanicIfErr(b.Pin().Mode(true))
-	// }
+	for _, b := range sn.ScreenButtons() {
+		util.PanicIfErr(b.Pin().Mode(true))
+	}
 
 	strip, err := hw.NewLedstrip(misc.LedstripDataPin, misc.LedstripLength, misc.LedstripHasBurnerLED)
 	util.PanicIfErr(err)
@@ -25,11 +27,11 @@ func main() {
 	util.PanicIfErr(strip.Init())
 	defer strip.Fini()
 
-	// cmd := exec.Command(misc.DashDBrowser)
+	cmd := exec.Command(misc.DashDBrowser)
 
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, misc.LedstripContextKey, strip)
-	// ctx = context.WithValue(ctx, misc.DisplayContextKey, cmd)
+	ctx = context.WithValue(ctx, misc.DisplayContextKey, cmd)
 
 	nt.InitGOBFull()
 

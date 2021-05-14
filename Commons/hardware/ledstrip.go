@@ -53,7 +53,7 @@ func (l *Ledstrip) SetSingleLEDColor(index uint, c color.Color) {
 	}
 
 	r, g, b, _ := c.RGBA()
-	l.LEDs()[index] = r<<16 | g<<8 | b
+	l.LEDs()[index] = r>>8 | g>>16 | b>>24
 }
 
 func (l *Ledstrip) GetSingleLEDColor(index uint) color.Color {
@@ -89,7 +89,7 @@ func (l *Ledstrip) SetStripColor(c color.Color) {
 	r, g, b, _ := c.RGBA()
 
 	for i := 0; i < len(leds); i++ {
-		leds[i] = r<<16 | g<<8 | b
+		leds[i] = r>>8 | g>>16 | b>>24
 	}
 }
 
