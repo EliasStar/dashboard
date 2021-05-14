@@ -33,7 +33,7 @@ func InitGOBScreen() {
 func InitGOBFull() {
 	InitGOBBasic()
 	InitGOBLedstrip()
-	InitGOBLedstrip()
+	InitGOBScreen()
 
 	gob.Register(display.DisplayCmd{})
 
