@@ -3,14 +3,11 @@ package main
 import (
 	"context"
 	"encoding/gob"
-	"errors"
 	"fmt"
 	"log"
 	"net"
-	"os/exec"
 
-	. "github.com/EliasStar/DashboardUtils/Commons/command"
-	sn "github.com/EliasStar/DashboardUtils/Commons/command/screen"
+	cd "github.com/EliasStar/DashboardUtils/Commons/command"
 	hw "github.com/EliasStar/DashboardUtils/Commons/hardware"
 	nt "github.com/EliasStar/DashboardUtils/Commons/net"
 	"github.com/EliasStar/DashboardUtils/Commons/util"
@@ -18,9 +15,9 @@ import (
 )
 
 func main() {
-	for _, b := range sn.ScreenButtons() {
-		util.PanicIfErr(b.Pin().Mode(true))
-	}
+	// for _, b := range sn.ScreenButtons() {
+	// 	util.PanicIfErr(b.Pin().Mode(true))
+	// }
 
 	strip, err := hw.NewLedstrip(misc.LedstripDataPin, misc.LedstripLength, misc.LedstripHasBurnerLED)
 	util.PanicIfErr(err)
@@ -28,13 +25,13 @@ func main() {
 	util.PanicIfErr(strip.Init())
 	defer strip.Fini()
 
-	cmd := exec.Command(misc.DashDBrowser)
+	// cmd := exec.Command(misc.DashDBrowser)
 
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, misc.LedstripContextKey, strip)
-	ctx = context.WithValue(ctx, misc.DisplayContextKey, cmd)
+	// ctx = context.WithValue(ctx, misc.DisplayContextKey, cmd)
 
-	nt.InitGOB()
+	nt.InitGOBFull()
 
 	listener, err := net.Listen("tcp", "127.0.0.1:"+misc.DashDPort)
 	util.PanicIfErr(err)
@@ -60,13 +57,11 @@ func handleConnection(con net.Conn, ctx context.Context) {
 
 	fmt.Println("New Connection:", addr)
 
-	var cmd Command
+	var cmd cd.Command
 	for dec.Decode(&cmd) == nil {
 		fmt.Printf("|%v|> Received: %T\n", addr, cmd)
 
-		var rst Result = ErrorRst{
-			Error: errors.New("command invalid"),
-		}
+		var rst cd.Result = cd.ErrorRst("command invalid")
 
 		if cmd.IsValid(ctx) {
 			rst = cmd.Execute(ctx)

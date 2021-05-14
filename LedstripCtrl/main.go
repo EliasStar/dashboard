@@ -15,8 +15,9 @@ import (
 	"time"
 
 	"github.com/EliasStar/DashboardUtils/Commons/command"
-	. "github.com/EliasStar/DashboardUtils/Commons/command/ledstrip"
+	ls "github.com/EliasStar/DashboardUtils/Commons/command/ledstrip"
 	hw "github.com/EliasStar/DashboardUtils/Commons/hardware"
+	nt "github.com/EliasStar/DashboardUtils/Commons/net"
 	"github.com/EliasStar/DashboardUtils/Commons/util"
 	cl "github.com/EliasStar/DashboardUtils/Commons/util/color"
 	"github.com/EliasStar/DashboardUtils/Commons/util/misc"
@@ -30,12 +31,8 @@ func main() {
 	if conErr == nil {
 		defer con.Close()
 
-		gob.Register(cl.RGB{})
-		gob.Register(cl.RGBA32{})
-		gob.Register(command.ErrorRst{})
-		gob.Register(command.OKRst{})
-		gob.Register(LedstripCmd{})
-		gob.Register(LedstripRst{})
+		nt.InitGOBBasic()
+		nt.InitGOBLedstrip()
 
 		util.PanicIfErr(gob.NewEncoder(con).Encode(&cmd))
 		util.PanicIfErr(gob.NewDecoder(con).Decode(&rst))
@@ -53,10 +50,10 @@ func main() {
 	}
 
 	if !rst.IsOK() {
-		log.Panic(rst.Err())
+		log.Panic(rst)
 	}
 
-	ledRst, ok := rst.(LedstripRst)
+	ledRst, ok := rst.(ls.LedstripRst)
 	if ok {
 		fmt.Println(ledRst)
 	}
@@ -78,13 +75,13 @@ func parseCommand() (cmd command.Command) {
 
 	switch os.Args[1] {
 	case "read":
-		cmd = LedstripCmd{
-			Animation: AnimationRead,
+		cmd = ls.LedstripCmd{
+			Animation: ls.AnimationRead,
 			LEDs:      leds,
 		}
 
 	case "write":
-		cmd = LedstripCmd{
+		cmd = ls.LedstripCmd{
 			Animation:       parseAnimation(*anim),
 			LEDs:            leds,
 			Colors:          parseColors(set.Args()),
@@ -100,9 +97,11 @@ func parseCommand() (cmd command.Command) {
 
 func parseLEDFilter(ledFilter string) (leds []uint, err error) {
 	ledFilter = strings.ReplaceAll(ledFilter, " ", "")
-	ranges := strings.Split(ledFilter, ",")
+	if ledFilter == "" {
+		return
+	}
 
-	for _, v := range ranges {
+	for _, v := range strings.Split(ledFilter, ",") {
 		if strings.Contains(v, "-") {
 			ledstrings := strings.Split(v, "-")
 			if len(ledstrings) != 2 {
@@ -131,6 +130,11 @@ func parseLEDFilter(ledFilter string) (leds []uint, err error) {
 				leds = append(leds, uint(first)+uint(i))
 			}
 		} else {
+			if v == "" {
+				err = errors.New("led specifier empty")
+				return
+			}
+
 			led, e := strconv.ParseUint(v, 10, 0)
 			if err != nil {
 				err = e
@@ -144,16 +148,16 @@ func parseLEDFilter(ledFilter string) (leds []uint, err error) {
 	return
 }
 
-func parseAnimation(anim string) (animation LedstripAnimation) {
+func parseAnimation(anim string) (animation ls.LedstripAnimation) {
 	switch anim {
 	case "flush":
-		animation = AnimationFlush
+		animation = ls.AnimationFlush
 
 	case "reverseflush":
-		animation = AnimationFlushReverse
+		animation = ls.AnimationFlushReverse
 
 	case "write":
-		animation = AnimationWrite
+		animation = ls.AnimationWrite
 
 	default:
 		log.Panic("possible animations: flush, reverseflush, write")

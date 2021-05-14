@@ -12,23 +12,33 @@ import (
 	"github.com/EliasStar/DashboardUtils/Commons/util/color"
 )
 
-func InitGOB() {
+func InitGOBBasic() {
+	gob.Register(command.ErrorRst(""))
+	gob.Register(command.OKRst{})
+}
+
+func InitGOBLedstrip() {
 	gob.Register(color.RGB{})
 	gob.Register(color.RGBA32{})
 
-	gob.Register(command.ErrorRst{})
-	gob.Register(command.OKRst{})
+	gob.Register(ledstrip.LedstripCmd{})
+	gob.Register(ledstrip.LedstripRst{})
+}
+
+func InitGOBScreen() {
+	gob.Register(screen.ScreenCmd{})
+	gob.Register(screen.ScreenRst(false))
+}
+
+func InitGOBFull() {
+	InitGOBBasic()
+	InitGOBLedstrip()
+	InitGOBLedstrip()
 
 	gob.Register(display.DisplayCmd{})
 
 	gob.Register(launch.LaunchCmd{})
 	gob.Register(launch.LaunchRst(""))
 
-	gob.Register(ledstrip.LedstripCmd{})
-	gob.Register(ledstrip.LedstripRst{})
-
 	gob.Register(schedule.ScheduleCmd{})
-
-	gob.Register(screen.ScreenCmd{})
-	gob.Register(screen.ScreenRst(false))
 }

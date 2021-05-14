@@ -28,7 +28,7 @@ func main() {
 
 	defer con.Close()
 
-	nt.InitGOB()
+	nt.InitGOBFull()
 
 	enc := gob.NewEncoder(con)
 	dec := gob.NewDecoder(con)

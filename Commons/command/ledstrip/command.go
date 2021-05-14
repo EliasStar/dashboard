@@ -5,7 +5,7 @@ import (
 	"image/color"
 	"time"
 
-	. "github.com/EliasStar/DashboardUtils/Commons/command"
+	cmd "github.com/EliasStar/DashboardUtils/Commons/command"
 	"github.com/EliasStar/DashboardUtils/Commons/hardware"
 	"github.com/EliasStar/DashboardUtils/Commons/util/misc"
 )
@@ -18,7 +18,7 @@ type LedstripCmd struct {
 }
 
 func (l LedstripCmd) IsValid(ctx context.Context) bool {
-	strip, ok := ctx.Value("strip").(hardware.Ledstrip)
+	strip, ok := ctx.Value(misc.LedstripContextKey).(*hardware.Ledstrip)
 	if !ok {
 		return false
 	}
@@ -30,17 +30,19 @@ func (l LedstripCmd) IsValid(ctx context.Context) bool {
 	}
 
 	a := l.Animation.IsValid()
-	b := len(l.Colors) == 1 || (len(l.Colors) > 1 && len(l.LEDs) == len(l.Colors))
-	c := 0 <= l.AnimationLength
-	d := l.AnimationLength.Minutes() <= 5
+	b := 0 <= l.AnimationLength
+	c := l.AnimationLength.Minutes() <= 5
 
-	return a && b && c && d
+	d := l.Animation == AnimationRead && len(l.Colors) == 0
+	e := len(l.Colors) == 1 || (len(l.Colors) > 1 && len(l.LEDs) == len(l.Colors))
+
+	return a && b && c && (d || e)
 }
 
-func (l LedstripCmd) Execute(ctx context.Context) Result {
+func (l LedstripCmd) Execute(ctx context.Context) cmd.Result {
 	strip, ok := ctx.Value(misc.LedstripContextKey).(*hardware.Ledstrip)
 	if !ok {
-		return NewErrorRstFromString("ledstrip not initialized")
+		return cmd.ErrorRst("ledstrip not initialized")
 	}
 
 	switch l.Animation {
@@ -101,5 +103,5 @@ func (l LedstripCmd) Execute(ctx context.Context) Result {
 		}
 	}
 
-	return NewErrorRstFromError(strip.Render())
+	return cmd.NewResultFromError(strip.Render())
 }

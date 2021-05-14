@@ -5,7 +5,7 @@ import (
 	"net/url"
 	"os/exec"
 
-	. "github.com/EliasStar/DashboardUtils/Commons/command"
+	cmd "github.com/EliasStar/DashboardUtils/Commons/command"
 	"github.com/EliasStar/DashboardUtils/Commons/util/misc"
 )
 
@@ -20,25 +20,25 @@ func (d DisplayCmd) IsValid(ctx context.Context) bool {
 	return valid && err == nil
 }
 
-func (d DisplayCmd) Execute(ctx context.Context) Result {
-	cmd, ok := ctx.Value(misc.DisplayContextKey).(*exec.Cmd)
+func (d DisplayCmd) Execute(ctx context.Context) cmd.Result {
+	c, ok := ctx.Value(misc.DisplayContextKey).(*exec.Cmd)
 	if !ok {
-		return NewErrorRstFromString("display not initialized")
+		return cmd.ErrorRst("display not initialized")
 	}
 
 	if d.Action == ActionGet {
-		return DisplayRst(cmd.Args[1])
+		return DisplayRst(c.Args[1])
 	}
 
-	if cmd.Process != nil {
-		cmd.Process.Kill()
-		cmd.Process.Release()
+	if c.Process != nil {
+		c.Process.Kill()
+		c.Process.Release()
 	}
 
 	if d.Action == ActionSet {
-		cmd = exec.Command(misc.DashDBrowser, d.URL)
-		cmd.Start()
+		c = exec.Command(misc.DashDBrowser, d.URL)
+		c.Start()
 	}
 
-	return OKRst{}
+	return cmd.OKRst{}
 }

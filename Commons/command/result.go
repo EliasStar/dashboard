@@ -1,10 +1,15 @@
 package command
 
-import "errors"
-
 type Result interface {
 	IsOK() bool
-	Err() error
+}
+
+func NewResultFromError(err error) Result {
+	if err == nil {
+		return OKRst{}
+	}
+
+	return ErrorRst(err.Error())
 }
 
 type OKRst struct{}
@@ -13,30 +18,8 @@ func (o OKRst) IsOK() bool {
 	return true
 }
 
-func (o OKRst) Err() error {
-	return nil
-}
-
-func NewErrorRstFromError(err error) ErrorRst {
-	return ErrorRst{
-		Error: err,
-	}
-}
-
-func NewErrorRstFromString(err string) ErrorRst {
-	return ErrorRst{
-		Error: errors.New(err),
-	}
-}
-
-type ErrorRst struct {
-	Error error
-}
+type ErrorRst string
 
 func (e ErrorRst) IsOK() bool {
-	return e.Error == nil
-}
-
-func (e ErrorRst) Err() error {
-	return e.Error
+	return false
 }

@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	. "github.com/EliasStar/DashboardUtils/Commons/command"
+	cmd "github.com/EliasStar/DashboardUtils/Commons/command"
 )
 
 type ScreenCmd struct {
@@ -22,12 +22,12 @@ func (s ScreenCmd) IsValid(ctx context.Context) bool {
 	return a && b && c && d
 }
 
-func (s ScreenCmd) Execute(ctx context.Context) Result {
+func (s ScreenCmd) Execute(ctx context.Context) cmd.Result {
 	switch s.Action {
 	case ActionRead:
 		val, err := s.Button.Pin().Read()
 		if err != nil {
-			return NewErrorRstFromError(err)
+			return cmd.ErrorRst(err.Error())
 		}
 
 		return ScreenRst(val)
@@ -42,5 +42,5 @@ func (s ScreenCmd) Execute(ctx context.Context) Result {
 		s.Button.Pin().Toggle(s.ToggleDelay)
 	}
 
-	return OKRst{}
+	return cmd.OKRst{}
 }
