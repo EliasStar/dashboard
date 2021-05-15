@@ -39,7 +39,7 @@ func (c Command) Execute(ctx context.Context) command.Result {
 	}
 
 	if c.Action == ActionSet {
-		cmd = exec.Command(Browser, c.URL)
+		*cmd = *exec.Command(Browser, c.URL)
 		cmd.Start()
 	}
 
