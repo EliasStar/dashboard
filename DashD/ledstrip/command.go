@@ -12,9 +12,9 @@ type ContextKey struct{}
 
 type Command struct {
 	Animation       Animation
+	AnimationLength time.Duration
 	LEDs            []uint
 	Colors          []color.Color
-	AnimationLength time.Duration
 }
 
 func (c Command) IsValid(ctx context.Context) bool {

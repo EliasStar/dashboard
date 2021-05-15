@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"encoding/gob"
 	"fmt"
+	"image/color"
 	"log"
 	"net"
 	"os"
@@ -21,11 +22,10 @@ import (
 )
 
 func main() {
-	con, err := net.Dial("tcp", os.Args[1]+":port")
-	util.PanicIfErr(err)
+	con, conErr := net.Dial("tcp", os.Args[1])
+	util.PanicIfErr(conErr)
 
 	defer con.Close()
-
 	util.InitGOBFull()
 
 	enc := gob.NewEncoder(con)
@@ -33,55 +33,124 @@ func main() {
 	scn := bufio.NewScanner(os.Stdin)
 
 	for scn.Scan() {
-		var cmd command.Command
-
-		// TODO DashConnect Input
-		in := strings.Split(scn.Text(), " ")
-
-		switch in[0] {
-		case "display":
-			cmd = display.Command{display.Action(in[1]), in[2]}
-
-		case "launch":
-			cmd = launch.Command{in[1], in[2:]}
-
-		case "ledstrip":
-			cmd = ledstrip.Command{}
-
-		case "schedule":
-			cmd = schedule.Command{}
-
-		case "screen":
-			action := screen.Action(in[1])
-
-			val, err := strconv.ParseUint(in[2], 10, 0)
-			if err != nil {
-				log.Println(err)
-				continue
-			}
-			btn := screen.Button(val)
-
-			var delay time.Duration
-			if action == screen.ActionToggle {
-				val, err := strconv.ParseUint(in[3], 10, 0)
-				if err != nil {
-					log.Println(err)
-					continue
-				}
-
-				delay = time.Microsecond * time.Duration(val)
-			}
-
-			cmd = screen.Command{action, btn, delay}
-
-		default:
+		cmd := parseCommand(scn.Text())
+		if cmd == nil {
 			continue
 		}
 
-		enc.Encode(&cmd)
-
 		var rst command.Result
-		dec.Decode(&rst)
-		fmt.Printf("%#v\n", rst)
+
+		util.PanicIfErr(enc.Encode(&cmd))
+		util.PanicIfErr(dec.Decode(&rst))
+
+		if !rst.IsOK() {
+			log.Panic(rst)
+		}
+
+		fmt.Println(rst)
 	}
+}
+
+func parseCommand(input string) (cmd command.Command) {
+	in := strings.Fields(input)
+	if len(in) < 1 {
+		log.Println("too few arguments")
+		return
+	}
+
+	switch in[0] {
+	case "display":
+		cmd = display.Command{
+			Action: display.Action(in[1]),
+			URL:    in[2],
+		}
+
+	case "launch":
+		cmd = launch.Command{
+			Executable: in[1],
+			Arguments:  in[2:],
+		}
+
+	case "ledstrip":
+		if len(in) < 5 {
+			log.Println("too few arguments")
+			return
+		}
+
+		length, err := time.ParseDuration(in[2])
+		if err != nil {
+			log.Println(err)
+			return
+		}
+
+		var leds []uint
+		for _, v := range strings.Split(in[3], ",") {
+			if v == "" {
+				return
+			}
+
+			led, err := strconv.ParseUint(v, 10, 0)
+			if err != nil {
+				log.Println(err)
+				return
+			}
+
+			leds = append(leds, uint(led))
+		}
+
+		var colors []color.Color
+		for _, v := range strings.Split(in[4], ",") {
+			if v == "" {
+				return
+			}
+
+			col, err := strconv.ParseUint(v, 16, 0)
+			if err != nil {
+				log.Println(err)
+				return
+			}
+
+			c := ledstrip.RGBA32{
+				Color: uint32(col),
+			}
+
+			colors = append(colors, c)
+		}
+
+		cmd = ledstrip.Command{
+			Animation:       ledstrip.Animation(in[1]),
+			AnimationLength: length,
+			LEDs:            leds,
+			Colors:          colors,
+		}
+
+	case "schedule":
+		cmd = schedule.Command{}
+
+	case "screen":
+		if len(in) < 4 {
+			log.Println("too few arguments")
+			return
+		}
+
+		btn, err := strconv.ParseUint(in[2], 10, 0)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+
+		delay, err := time.ParseDuration(in[3])
+		if err != nil {
+			log.Println(err)
+			return
+		}
+
+		cmd = screen.Command{
+			Action:      screen.Action(in[1]),
+			Button:      screen.Button(btn),
+			ToggleDelay: delay,
+		}
+	}
+
+	return
 }
